@@ -11,7 +11,7 @@ model_path = None
 endpoint_duration_sec = 1.0
 enable_automatic_punctuation = True
 audio_device_index = -1
-timeout = 10.0
+timeout = 15.0
 
 class Transcriber:
     def __init__(self):
@@ -23,21 +23,21 @@ class Transcriber:
             enable_automatic_punctuation=enable_automatic_punctuation)
         self.recorder = PvRecorder(device_index=audio_device_index, frame_length=self.cheetah.frame_length)
         self.text = ''
-        self.running = False
+        self.running = threading.Event()
 
     def start(self):
-        self.running = True
+        self.running.set()
         self.recorder.start()
         last_input_time = time.time()
 
         try:
-            while self.running:
+            while self.running.is_set():
                 partial_transcript, is_endpoint = self.cheetah.process(self.recorder.read())
                 if partial_transcript:
                     self.text += partial_transcript
                 if is_endpoint:
                     last_input_time = time.time()
-                    print(self.text + self.cheetah.flush())
+                    yield self.text + self.cheetah.flush()
                     self.text = ''
                 if time.time() - last_input_time > timeout:
                     break
@@ -45,14 +45,19 @@ class Transcriber:
             self.recorder.stop()
 
     def stop(self):
-        self.running = False
+        self.running.clear()
 
 if __name__ == "__main__":
     transcriber = Transcriber()
 
     def start_transcription():
         # Create a new thread for the transcription process
-        threading.Thread(target=transcriber.start).start()
+        transcription_thread = threading.Thread(target=perform_transcription)
+        transcription_thread.start()
+
+    def perform_transcription():
+        for transcript in transcriber.start():
+            print(transcript)
 
     def stop_transcription():
         transcriber.stop()

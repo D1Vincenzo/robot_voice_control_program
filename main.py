@@ -15,15 +15,17 @@ def initialize():
     output_text.insert(tk.END, text + '\n')
 
 def start_transcription():
-    try:
-        threading.Thread(target=transcriber.start).start()
-    except:
-        NameError
+    # Create a new thread for the transcription process
+    transcription_thread = threading.Thread(target=perform_transcription)
+    transcription_thread.start()
+
+def perform_transcription():
+    for transcript in transcriber.start():
+        print(transcript)
+        output_text.insert(tk.END, transcript + '\n')
+
 def stop_transcription():
-    try:
-        transcriber.stop()
-    except:
-        NameError
+    transcriber.stop()
 
 
 
