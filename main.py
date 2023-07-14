@@ -1,6 +1,7 @@
 import tkinter as tk
 from speech_to_text import Transcriber
 import threading
+from word_embedding import find_the_most_similar_command
 
 root = tk.Tk()
 root.geometry("500x500")
@@ -38,8 +39,12 @@ def toggle_transcription():
 
 def perform_transcription():
     for transcript in transcriber.start():
-        print(transcript)
-        output_text.insert(tk.END, transcript + '\n')
+        output_text.insert(tk.END, transcript + '\n')  
+        if find_the_most_similar_command(transcript): 
+            output_text.insert(tk.END, "Command Received:")   
+            output_text.insert(tk.END, find_the_most_similar_command(transcript))   
+            output_text.insert(tk.END, "\n")   
+            print(find_the_most_similar_command(transcript))
 
 
 
