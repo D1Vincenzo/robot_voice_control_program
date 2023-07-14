@@ -43,7 +43,7 @@ class Transcriber:
                     break
         finally:
             self.recorder.stop()
-
+            self.cheetah.delete
     def stop(self):
         self.running.clear()
 
